@@ -1,9 +1,60 @@
-import { useEffect, useState } from "react";
-import reactLogo from "./assets/react.svg";
-import { invoke } from "@tauri-apps/api/tauri";
+import { useState } from "react";
 import "./App.css";
 
 function App() {
+  const buttonLabels = [
+    "Alpha",
+    "Beta",
+    "Gamma",
+    "Delta",
+    "Epsilon",
+    "Zeta",
+    "Eta",
+    "Theta",
+    "Iota",
+    "Kappa",
+    "Lambda",
+    "Mu",
+    "Nu",
+    "Xi",
+    "Omicron",
+    "Pi",
+    "Rho",
+    "Sigma",
+    "Tau",
+    "Upsilon",
+    "Phi",
+    "Chi",
+    "Psi",
+    "Omega",
+  ];
+  const buttonLetters = [
+    "Aα",
+    "Bβ",
+    "Γγ",
+    "Δδ",
+    "Eε",
+    "Zζ",
+    "Ηη",
+    "Θθ",
+    "Ιι",
+    "Κκ",
+    "Λλ",
+    "Mμ",
+    "Νν",
+    "Ξξ",
+    "Οο",
+    "Ππ",
+    "Ρρ",
+    "Σσς",
+    "Ττ",
+    "Υυ",
+    "Φφ",
+    "Χχ",
+    "Ψψ",
+    "Ωω",
+  ];
+
   const [taskArray, setTaskArray] = useState([
     "Alpha (Aα)",
     "Beta (Bβ)",
@@ -19,60 +70,40 @@ function App() {
     setTaskArray((prev) => prev.filter((_, i) => index != i));
   }
 
+  const toolbarStyle =
+    "bg-slate-500 p-2 text-white hover:bg-slate-700 hover:font-bold transition ease-in-out duration-300";
+
   return (
-    <div>
-      <div>
-        <div className="flex justify-start p-4 bg-slate-300 fixed gap-3">
-          <button
-            className="bg-slate-500 p-2 text-white hover:bg-slate-700 transition ease-in-out duration-300"
-            onClick={() => demo_add("Alpha (Aα)")}
-          >
-            Aα
-          </button>
-          <button
-            className="bg-slate-500 p-2 text-white hover:bg-slate-700 transition ease-in-out duration-300"
-            onClick={() => demo_add("Beta (Bβ)")}
-          >
-            Bβ
-          </button>
-          <button
-            className="bg-slate-500 p-2 text-white hover:bg-slate-700 transition ease-in-out duration-300"
-            onClick={() => demo_add("Gamma (Γγ)")}
-          >
-            Γγ
-          </button>
-          <button
-            className="bg-slate-500 p-2 text-white hover:bg-slate-700 transition ease-in-out duration-300"
-            onClick={() => demo_add("Delta (Δδ)")}
-          >
-            Δδ
-          </button>
-          <button
-            className="bg-slate-500 p-2 text-white hover:bg-slate-700 transition ease-in-out duration-300"
-            onClick={() => demo_add("Epsilon (Eε)")}
-          >
-            Eε
-          </button>
-          <button
-            className="bg-slate-500 p-2 text-white hover:bg-slate-700 transition ease-in-out duration-300"
-            onClick={() => demo_add("Zeta (Zζ)")}
-          >
-            Zζ
-          </button>
-        </div>
-        <ul className="list-none grid justify-center gap-2">
-          {taskArray.map((task, index) => {
+    <div className="relative">
+      <div className="gap-4">
+        <div className="flex justify-center sticky top-0 flex-wrap p-4 bg-slate-400 gap-3 mb-5">
+          {buttonLabels.map((label, index) => {
             return (
-              <li
+              <button
+                className={toolbarStyle}
+                onClick={() => demo_add(label + ` (${buttonLetters[index]})`)}
                 key={index}
-                className="text-center text-white p-6 bg-slate-500 hover:bg-slate-700 transition duration-300 ease-in-out cursor-pointer"
-                onClick={() => removeTask(index)}
               >
-                {task}
-              </li>
+                {buttonLetters[index]}
+              </button>
             );
           })}
-        </ul>
+        </div>
+        <div>
+          <ul className="list-none flex flex-col justify-center gap-2">
+            {taskArray.map((task, index) => {
+              return (
+                <li
+                  key={index}
+                  className="text-center text-white p-6 bg-slate-500 hover:bg-slate-700 hover:font-bold transition duration-300 ease-in-out cursor-pointer mx-36"
+                  onClick={() => removeTask(index)}
+                >
+                  {task}
+                </li>
+              );
+            })}
+          </ul>
+        </div>
       </div>
     </div>
   );
