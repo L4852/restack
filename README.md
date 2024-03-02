@@ -1,2 +1,4 @@
 # restack
- A reminders and task scheduler for making the best use of your time. Made with Tauri, React, and Typescript.
+A reminders and task scheduler to help you make the best use of your time. Made with Tauri, React, and Typescript.
+
+**WORK IN PROGRESS**
