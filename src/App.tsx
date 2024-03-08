@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import "./App.css";
 import { Store } from "tauri-plugin-store-api";
 
@@ -7,62 +7,13 @@ import { AnimatePresence, motion } from "framer-motion";
 import {
   ArrowDownToLineIcon,
   ArrowUpFromLineIcon,
+  ListEndIcon,
+  ListStartIcon,
   SaveIcon,
 } from "lucide-react";
 
 function App() {
-  const buttonLabels = [
-    "Alpha",
-    "Beta",
-    "Gamma",
-    "Delta",
-    "Epsilon",
-    "Zeta",
-    "Eta",
-    "Theta",
-    "Iota",
-    "Kappa",
-    "Lambda",
-    "Mu",
-    "Nu",
-    "Xi",
-    "Omicron",
-    "Pi",
-    "Rho",
-    "Sigma",
-    "Tau",
-    "Upsilon",
-    "Phi",
-    "Chi",
-    "Psi",
-    "Omega",
-  ];
-  const buttonLetters = [
-    "Aα",
-    "Bβ",
-    "Γγ",
-    "Δδ",
-    "Eε",
-    "Zζ",
-    "Ηη",
-    "Θθ",
-    "Ιι",
-    "Κκ",
-    "Λλ",
-    "Mμ",
-    "Νν",
-    "Ξξ",
-    "Οο",
-    "Ππ",
-    "Ρρ",
-    "Σσς",
-    "Ττ",
-    "Υυ",
-    "Φφ",
-    "Χχ",
-    "Ψψ",
-    "Ωω",
-  ];
+  const buttonLabels = [<ListStartIcon />, <ListEndIcon />, "Γγ", "Δδ", "Eε"];
 
   const [taskArray, setTaskArray] = useState<Task[]>([]);
 
@@ -85,7 +36,11 @@ function App() {
 
   const store = new Store(".tasks.dat");
 
-  function demoAdd(value: string) {
+  function demoAddTop(value: string) {
+    setTaskArray((prev) => [{ name: value, createdAt: Date.now() }, ...prev]);
+  }
+
+  function demoAddBottom(value: string) {
     setTaskArray((prev) => [...prev, { name: value, createdAt: Date.now() }]);
   }
 
@@ -104,13 +59,21 @@ function App() {
     return 1;
   }
 
+  function getInputBox(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const text = event.currentTarget["task-name-input"].value;
+    console.log(text);
+    event.currentTarget.reset();
+    demoAddTop(text);
+  }
+
   useEffect(() => {
     getTaskList();
     console.log("Fetched user tasks.");
   }, []);
 
   const toolbarStyle =
-    "bg-slate-500 p-2 text-white hover:bg-slate-700transition ease-in-out duration-300";
+    "bg-slate-500 p-2 text-white hover:bg-slate-700 transition ease-in-out duration-300";
 
   const taskStyle =
     "text-center text-white p-6 bg-slate-500 hover:bg-slate-700 hover:shadow-2xl transition duration-300 ease-in-out cursor-pointer mx-36 rounded-lg border-2 border-slate-300";
@@ -136,18 +99,24 @@ function App() {
                   }}
                   whileTap={{ scale: 1.2, fontWeight: 500 }}
                   className={toolbarStyle}
-                  onClick={() => demoAdd(label + ` (${buttonLetters[index]})`)}
+                  onClick={() => {
+                    switch (index) {
+                      case 0:
+                        demoAddTop(label);
+                        break;
+                      case 1:
+                        demoAddBottom(label);
+                        break;
+                      default:
+                        break;
+                    }
+                  }}
                   key={index}
                 >
-                  {buttonLetters[index]}
+                  {label}
                 </motion.button>
               );
             })}
-            <input
-              className="p-2"
-              type="text"
-              placeholder="Enter a task name..."
-            />
             <motion.button
               whileHover={{
                 scale: 1.1,
@@ -175,6 +144,18 @@ function App() {
             {showToolbar ? <ArrowUpFromLineIcon /> : <ArrowDownToLineIcon />}
           </motion.button>
         </motion.div>
+        <div className="flex justify-center">
+          <form id="task-input-form" onSubmit={(e) => getInputBox(e)}>
+            <motion.input
+              initial={{ x: -150 }}
+              animate={{ x: 0 }}
+              name="task-name-input"
+              className="p-4 w-96 active border-solid border-b-2 border-black focus:outline-none"
+              type="text"
+              placeholder="Enter a task name..."
+            />
+          </form>
+        </div>
         <div>
           <ul className="list-none flex flex-col justify-center gap-2">
             <AnimatePresence>
@@ -189,18 +170,23 @@ function App() {
                 ""
               )}
               {taskArray.length > 0 ? (
-                taskArray.map((task, _) => {
+                taskArray.map((task, index) => {
                   return (
                     <motion.li
                       whileHover={{
                         scale: 1.025,
                         fontWeight: 800,
-                        backgroundColor: "rgb(0, 153, 0)",
+                        backgroundColor:
+                          index == 0 ? "rgb(0, 133, 0)" : "rgb(51, 65, 85)",
                       }}
                       whileTap={{ scale: 1.03, fontWeight: 900 }}
                       initial={{
                         opacity: 1,
+                        backgroundColor:
+                          index == 0 ? "rgb(0, 153, 0)" : "rgb(100, 116, 139)",
+                        y: -30,
                       }}
+                      animate={{ y: 0 }}
                       exit={{
                         opacity: 0,
                       }}
