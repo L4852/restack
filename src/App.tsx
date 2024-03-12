@@ -1,4 +1,4 @@
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
 import "./App.css";
 import { Store } from "tauri-plugin-store-api";
 
@@ -19,6 +19,8 @@ function App() {
 
   const [showToolbar, setShowToolbar] = useState<boolean>(true);
 
+  const taskEnterBar = useRef<HTMLInputElement>(null);
+
   type Task = { name: string; createdAt: number };
 
   async function saveTaskList() {
@@ -36,12 +38,20 @@ function App() {
 
   const store = new Store(".tasks.dat");
 
-  function demoAddTop(value: string) {
-    setTaskArray((prev) => [{ name: value, createdAt: Date.now() }, ...prev]);
+  function demoAddTop() {
+    setTaskArray((prev) => [
+      { name: taskEnterBar.current!.value, createdAt: Date.now() },
+      ...prev,
+    ]);
+    taskEnterBar.current!.value = "";
   }
 
-  function demoAddBottom(value: string) {
-    setTaskArray((prev) => [...prev, { name: value, createdAt: Date.now() }]);
+  function demoAddBottom() {
+    setTaskArray((prev) => [
+      ...prev,
+      { name: taskEnterBar.current!.value, createdAt: Date.now() },
+    ]);
+    taskEnterBar.current!.value = "";
   }
 
   function removeTask(timeCreated: number) {
@@ -61,10 +71,6 @@ function App() {
 
   function getInputBox(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const text = event.currentTarget["task-name-input"].value;
-    console.log(text);
-    event.currentTarget.reset();
-    demoAddTop(text);
   }
 
   useEffect(() => {
@@ -102,10 +108,10 @@ function App() {
                   onClick={() => {
                     switch (index) {
                       case 0:
-                        demoAddTop(label);
+                        demoAddTop();
                         break;
                       case 1:
-                        demoAddBottom(label);
+                        demoAddBottom();
                         break;
                       default:
                         break;
@@ -147,6 +153,7 @@ function App() {
         <div className="flex justify-center">
           <form id="task-input-form" onSubmit={(e) => getInputBox(e)}>
             <motion.input
+              ref={taskEnterBar}
               initial={{ x: -150 }}
               animate={{ x: 0 }}
               name="task-name-input"
