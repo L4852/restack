@@ -212,13 +212,13 @@ function App() {
               </form>
             </div>
             <h2 className="font-inter-tight font-light text-md text-center p-2">
-              {infoDialog}
+              {showToolbar ? infoDialog : undefined}
             </h2>
             {canGetInput() && taskEnterBar.current!.value.length > 0 ? (
               <h3
                 className={
                   "font-inter-tight font-bold text-sm text-center " +
-                  (canGetInput() &&
+                  (showToolbar && canGetInput() &&
                   taskEnterBar.current!.value.length > MAX_TASK_NAME_LENGTH
                     ? "text-red-700"
                     : "")
