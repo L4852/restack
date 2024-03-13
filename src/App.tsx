@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 
 function App() {
-  const buttonLabels = [<ListStartIcon />, <ListEndIcon />, "Γγ", "Δδ", "Eε"];
+  const buttonLabels = [<ListStartIcon />, <ListEndIcon />];
 
   const [taskArray, setTaskArray] = useState<Task[]>([]);
 
