@@ -221,8 +221,8 @@ function App() {
                           : "")
                       }
                     >
-                      {taskEnterBar.current!.value.length} out of{" "}
-                      {MAX_TASK_NAME_LENGTH} characters used
+                      {inputLength} out of {MAX_TASK_NAME_LENGTH} characters
+                      used
                     </h3>
                   ) : undefined}
 
