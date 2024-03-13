@@ -19,6 +19,8 @@ function App() {
 
   const [showToolbar, setShowToolbar] = useState<boolean>(true);
 
+  const [infoDialog, setInfoDialog] = useState<string>("");
+
   const taskEnterBar = useRef<HTMLInputElement>(null);
 
   type Task = { name: string; createdAt: number };
@@ -39,19 +41,27 @@ function App() {
   const store = new Store(".tasks.dat");
 
   function demoAddTop() {
-    setTaskArray((prev) => [
-      { name: taskEnterBar.current!.value, createdAt: Date.now() },
-      ...prev,
-    ]);
-    taskEnterBar.current!.value = "";
+    if (taskEnterBar.current!.value != "") {
+      setTaskArray((prev) => [
+        { name: taskEnterBar.current!.value, createdAt: Date.now() },
+        ...prev,
+      ]);
+      setInfoDialog("");
+      return;
+    }
+    setInfoDialog("Add a task using one of the buttons in the toolbar above.");
   }
 
   function demoAddBottom() {
-    setTaskArray((prev) => [
-      ...prev,
-      { name: taskEnterBar.current!.value, createdAt: Date.now() },
-    ]);
-    taskEnterBar.current!.value = "";
+    if (taskEnterBar.current!.value != "") {
+      setTaskArray((prev) => [
+        ...prev,
+        { name: taskEnterBar.current!.value, createdAt: Date.now() },
+      ]);
+      setInfoDialog("");
+      return;
+    }
+    setInfoDialog("Add a task using one of the buttons in the toolbar above.");
   }
 
   function removeTask(timeCreated: number) {
@@ -168,7 +178,10 @@ function App() {
             <AnimatePresence>
               {taskArray.length > 0 ? (
                 <div className="flex flex-col justify-center">
-                  <h2 className="font-inter-tight font-semibold text-2xl text-center p-4">
+                  <h2 className="font-inter-tight font-light text-md text-center p-2">
+                    {infoDialog}
+                  </h2>
+                  <h2 className="font-inter-tight font-semibold text-2xl text-red-900 text-center p-4">
                     You have {taskArray.length} pending task
                     {taskArray.length > 1 ? "s" : ""}.
                   </h2>
@@ -181,13 +194,14 @@ function App() {
                   return (
                     <motion.li
                       whileHover={{
-                        scale: 1.025,
+                        scale: index == 0 ? 1.035 : 1.025,
                         fontWeight: 800,
                         backgroundColor:
                           index == 0 ? "rgb(0, 133, 0)" : "rgb(51, 65, 85)",
                       }}
                       whileTap={{ scale: 1.03, fontWeight: 900 }}
                       initial={{
+                        scale: index == 0 ? 1.025 : 1,
                         opacity: 1,
                         backgroundColor:
                           index == 0 ? "rgb(0, 153, 0)" : "rgb(100, 116, 139)",
@@ -197,7 +211,7 @@ function App() {
                       exit={{
                         opacity: 0,
                       }}
-                      key={task.createdAt}
+                      key={index}
                       className={taskStyle}
                       onClick={() => removeTask(task.createdAt)}
                     >
@@ -207,7 +221,7 @@ function App() {
                 })
               ) : (
                 <div className="flex flex-col justify-center">
-                  <h2 className="font-inter-tight font-semibold text-2xl text-center p-4">
+                  <h2 className="font-inter-tight font-semibold text-green-900 text-2xl text-center p-4">
                     You have no pending tasks.
                   </h2>
                   <img className="h-48 w-48 m-auto" src="/img/icon.png" />
