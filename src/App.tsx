@@ -111,6 +111,10 @@ function App() {
     setInputLength(taskEnterBar.current!.value.length);
   }
 
+  function canGetInput() {
+    return taskEnterBar.current != null ? true : false;
+  }
+
   useEffect(() => {
     getTaskList();
     console.log("Fetched user tasks.");
@@ -167,6 +171,8 @@ function App() {
                 fontWeight: 800,
                 backgroundColor: "rgb(51, 204, 204)",
               }}
+              initial={{ y: 0 }}
+              whileTap={{ y: -5 }}
               className={toolbarStyle}
               onClick={() => saveTaskList()}
             >
@@ -188,21 +194,24 @@ function App() {
             {showToolbar ? <ArrowUpFromLineIcon /> : <ArrowDownToLineIcon />}
           </motion.button>
         </motion.div>
-        <div className="flex justify-center">
-          <form id="task-input-form" onSubmit={(e) => getInputBox(e)}>
-            <motion.input
-              ref={taskEnterBar}
-              initial={{ x: -150 }}
-              animate={{ x: 0 }}
-              name="task-name-input"
-              className="p-4 w-96 active border-solid border-b-2 border-black focus:outline-none"
-              type="text"
-              placeholder="Enter a task name..."
-              onInput={updateInputLength}
-              maxLength={MAX_INPUT_BOX}
-            />
-          </form>
-        </div>
+        {showToolbar ? (
+          <div className="flex justify-center">
+            <form id="task-input-form" onSubmit={(e) => getInputBox(e)}>
+              <motion.input
+                ref={taskEnterBar}
+                initial={{ x: -150 }}
+                animate={{ x: 0 }}
+                name="task-name-input"
+                className="p-4 w-96 active border-solid border-b-2 border-black focus:outline-none"
+                type="text"
+                placeholder="Enter a task name..."
+                onInput={updateInputLength}
+                maxLength={MAX_INPUT_BOX}
+              />
+            </form>
+          </div>
+        ) : undefined}
+
         <div>
           <ul className="list-none flex flex-col justify-center gap-2">
             <AnimatePresence>
@@ -211,12 +220,13 @@ function App() {
                   <h2 className="font-inter-tight font-light text-md text-center p-2">
                     {infoDialog}
                   </h2>
-                  {taskEnterBar.current!.value.length > 0 ? (
+                  {canGetInput() && taskEnterBar.current!.value.length > 0 ? (
                     <h3
                       className={
                         "font-inter-tight font-bold text-sm text-center " +
-                        (taskEnterBar.current!.value.length >
-                        MAX_TASK_NAME_LENGTH
+                        (canGetInput() &&
+                        taskEnterBar.current!.value.length >
+                          MAX_TASK_NAME_LENGTH
                           ? "text-red-700"
                           : "")
                       }
