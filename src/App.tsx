@@ -17,11 +17,16 @@ function App() {
 
   const [taskArray, setTaskArray] = useState<Task[]>([]);
 
+  const [inputLength, setInputLength] = useState<number>(0);
+
   const [showToolbar, setShowToolbar] = useState<boolean>(true);
 
   const [infoDialog, setInfoDialog] = useState<string>("");
 
   const taskEnterBar = useRef<HTMLInputElement>(null);
+
+  const MAX_TASK_NAME_LENGTH = 140;
+  const MAX_INPUT_BOX = 999;
 
   type Task = { name: string; createdAt: number };
 
@@ -40,8 +45,39 @@ function App() {
 
   const store = new Store(".tasks.dat");
 
+  function checkLength() {
+    if (!taskEnterBar.current) {
+      return false;
+    }
+    if (taskEnterBar.current!.value.length < MAX_TASK_NAME_LENGTH) {
+      return true;
+    }
+    return false;
+  }
+
+  function checkTaskRequirements() {
+    let result = false;
+
+    if (taskEnterBar.current) {
+      if (taskEnterBar.current!.value.split(" ").join("") == "") {
+        setInfoDialog(
+          "Add a task using one of the buttons in the toolbar above."
+        );
+      } else {
+        result = true;
+      }
+      if (taskEnterBar.current!.value.length > MAX_TASK_NAME_LENGTH) {
+        setInfoDialog(
+          `Please choose a task name less than ${MAX_TASK_NAME_LENGTH} characters in length.`
+        );
+        result = false;
+      }
+    }
+    return result;
+  }
+
   function demoAddTop() {
-    if (taskEnterBar.current!.value != "") {
+    if (checkTaskRequirements()) {
       setTaskArray((prev) => [
         { name: taskEnterBar.current!.value, createdAt: Date.now() },
         ...prev,
@@ -49,11 +85,10 @@ function App() {
       setInfoDialog("");
       return;
     }
-    setInfoDialog("Add a task using one of the buttons in the toolbar above.");
   }
 
   function demoAddBottom() {
-    if (taskEnterBar.current!.value != "") {
+    if (checkTaskRequirements()) {
       setTaskArray((prev) => [
         ...prev,
         { name: taskEnterBar.current!.value, createdAt: Date.now() },
@@ -61,7 +96,6 @@ function App() {
       setInfoDialog("");
       return;
     }
-    setInfoDialog("Add a task using one of the buttons in the toolbar above.");
   }
 
   function removeTask(timeCreated: number) {
@@ -81,6 +115,10 @@ function App() {
 
   function getInputBox(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+  }
+
+  function updateInputLength() {
+    setInputLength(taskEnterBar.current!.value.length);
   }
 
   useEffect(() => {
@@ -170,6 +208,8 @@ function App() {
               className="p-4 w-96 active border-solid border-b-2 border-black focus:outline-none"
               type="text"
               placeholder="Enter a task name..."
+              onInput={updateInputLength}
+              maxLength={MAX_INPUT_BOX}
             />
           </form>
         </div>
@@ -181,6 +221,21 @@ function App() {
                   <h2 className="font-inter-tight font-light text-md text-center p-2">
                     {infoDialog}
                   </h2>
+                  {taskEnterBar.current!.value.length > 0 ? (
+                    <h3
+                      className={
+                        "font-inter-tight font-bold text-sm text-center " +
+                        (taskEnterBar.current!.value.length >
+                        MAX_TASK_NAME_LENGTH
+                          ? "text-red-700"
+                          : "")
+                      }
+                    >
+                      {taskEnterBar.current!.value.length} out of{" "}
+                      {MAX_TASK_NAME_LENGTH} characters used
+                    </h3>
+                  ) : undefined}
+
                   <h2 className="font-inter-tight font-semibold text-2xl text-red-900 text-center p-4">
                     You have {taskArray.length} pending task
                     {taskArray.length > 1 ? "s" : ""}.
@@ -224,7 +279,11 @@ function App() {
                   <h2 className="font-inter-tight font-semibold text-green-900 text-2xl text-center p-4">
                     You have no pending tasks.
                   </h2>
-                  <img className="h-48 w-48 m-auto" src="/img/icon.png" />
+                  <img
+                    draggable={false}
+                    className="h-48 w-48 m-auto"
+                    src="/img/icon.png"
+                  />
                 </div>
               )}
             </AnimatePresence>
