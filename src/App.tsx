@@ -45,16 +45,6 @@ function App() {
 
   const store = new Store(".tasks.dat");
 
-  function checkLength() {
-    if (!taskEnterBar.current) {
-      return false;
-    }
-    if (taskEnterBar.current!.value.length < MAX_TASK_NAME_LENGTH) {
-      return true;
-    }
-    return false;
-  }
-
   function checkTaskRequirements() {
     let result = false;
 
