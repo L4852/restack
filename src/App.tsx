@@ -195,47 +195,45 @@ function App() {
           </motion.button>
         </motion.div>
         {showToolbar ? (
-          <div className="flex justify-center">
-            <form id="task-input-form" onSubmit={(e) => getInputBox(e)}>
-              <motion.input
-                ref={taskEnterBar}
-                initial={{ x: -150 }}
-                animate={{ x: 0 }}
-                name="task-name-input"
-                className="p-4 w-96 active border-solid border-b-2 border-black focus:outline-none"
-                type="text"
-                placeholder="Enter a task name..."
-                onInput={updateInputLength}
-                maxLength={MAX_INPUT_BOX}
-              />
-            </form>
+          <div>
+            <div className="flex justify-center">
+              <form id="task-input-form" onSubmit={(e) => getInputBox(e)}>
+                <motion.input
+                  ref={taskEnterBar}
+                  initial={{ x: -150 }}
+                  animate={{ x: 0 }}
+                  name="task-name-input"
+                  className="p-4 w-96 active border-solid border-b-2 border-black focus:outline-none"
+                  type="text"
+                  placeholder="Enter a task name..."
+                  onInput={updateInputLength}
+                  maxLength={MAX_INPUT_BOX}
+                />
+              </form>
+            </div>
+            <h2 className="font-inter-tight font-light text-md text-center p-2">
+              {infoDialog}
+            </h2>
+            {canGetInput() && taskEnterBar.current!.value.length > 0 ? (
+              <h3
+                className={
+                  "font-inter-tight font-bold text-sm text-center " +
+                  (canGetInput() &&
+                  taskEnterBar.current!.value.length > MAX_TASK_NAME_LENGTH
+                    ? "text-red-700"
+                    : "")
+                }
+              >
+                {inputLength} out of {MAX_TASK_NAME_LENGTH} characters used
+              </h3>
+            ) : undefined}
           </div>
         ) : undefined}
-
         <div>
           <ul className="list-none flex flex-col justify-center gap-2">
             <AnimatePresence>
               {taskArray.length > 0 ? (
                 <div className="flex flex-col justify-center">
-                  <h2 className="font-inter-tight font-light text-md text-center p-2">
-                    {infoDialog}
-                  </h2>
-                  {canGetInput() && taskEnterBar.current!.value.length > 0 ? (
-                    <h3
-                      className={
-                        "font-inter-tight font-bold text-sm text-center " +
-                        (canGetInput() &&
-                        taskEnterBar.current!.value.length >
-                          MAX_TASK_NAME_LENGTH
-                          ? "text-red-700"
-                          : "")
-                      }
-                    >
-                      {inputLength} out of {MAX_TASK_NAME_LENGTH} characters
-                      used
-                    </h3>
-                  ) : undefined}
-
                   <h2 className="font-inter-tight font-semibold text-2xl text-red-900 text-center p-4">
                     You have {taskArray.length} pending task
                     {taskArray.length > 1 ? "s" : ""}.
