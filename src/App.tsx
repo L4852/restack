@@ -35,11 +35,28 @@ function App() {
     await store.save();
   }
 
+  async function saveToolbarShown() {
+    await store.set("toolbar_shown", { value: showToolbar });
+    await store.save();
+  }
+
+  async function saveAll() {
+    await saveTaskList();
+  }
+
   async function getTaskList() {
     const data = await store.get<{ value: Task[] }>("task_list");
 
     if (data != null) {
       setTaskArray(data.value);
+    }
+  }
+
+  async function getToolbarShown() {
+    const data = await store.get<{ value: boolean }>("toolbar_shown");
+
+    if (data != null) {
+      setShowToolbar(data.value);
     }
   }
 
@@ -94,13 +111,12 @@ function App() {
     );
   }
 
-  function toggleToolbarVisibility() {
+  async function toggleToolbarVisibility() {
     if (showToolbar) {
       setShowToolbar(false);
-      return 0;
+    } else {
+      setShowToolbar(true);
     }
-    setShowToolbar(true);
-    return 1;
   }
 
   function getInputBox(event: FormEvent<HTMLFormElement>) {
@@ -117,6 +133,7 @@ function App() {
 
   useEffect(() => {
     getTaskList();
+    getToolbarShown();
     console.log("Fetched user tasks.");
   }, []);
 
@@ -129,6 +146,7 @@ function App() {
   return (
     <div className="relative font-inter-tight">
       <div className="gap-4">
+        {/* Toolbar */}
         <AnimatePresence>
           <motion.div
             initial={{ opacity: 0 }}
@@ -174,12 +192,13 @@ function App() {
               initial={{ y: 0 }}
               whileTap={{ y: -5 }}
               className={toolbarStyle}
-              onClick={() => saveTaskList()}
+              onClick={() => saveAll()}
             >
               <SaveIcon />
             </motion.button>
           </motion.div>
         </AnimatePresence>
+        {/* Toggle Toolbar Button */}
         <motion.div
           whileHover={{ backgroundColor: "rgb(41, 194, 245)" }}
           className="flex flex-col justify-center bg-slate-300 p-2 mb-5 z-50 cursor-pointer"
@@ -194,6 +213,7 @@ function App() {
             {showToolbar ? <ArrowUpFromLineIcon /> : <ArrowDownToLineIcon />}
           </motion.button>
         </motion.div>
+        {/* Task Entry Bar and Character Limit Dialog */}
         {showToolbar ? (
           <div>
             <div className="flex justify-center">
@@ -218,7 +238,8 @@ function App() {
               <h3
                 className={
                   "font-inter-tight font-bold text-sm text-center " +
-                  (showToolbar && canGetInput() &&
+                  (showToolbar &&
+                  canGetInput() &&
                   taskEnterBar.current!.value.length > MAX_TASK_NAME_LENGTH
                     ? "text-red-700"
                     : "")
@@ -229,9 +250,11 @@ function App() {
             ) : undefined}
           </div>
         ) : undefined}
+        {/* Main Tasklist Section */}
         <div>
           <ul className="list-none flex flex-col justify-center gap-2">
             <AnimatePresence>
+              {/* Pending Task Count Display */}
               {taskArray.length > 0 ? (
                 <div className="flex flex-col justify-center">
                   <h2 className="font-inter-tight font-semibold text-2xl text-red-900 text-center p-4">
@@ -242,6 +265,7 @@ function App() {
               ) : (
                 ""
               )}
+              {/* Task Rendering */}
               {taskArray.length > 0 ? (
                 taskArray.map((task, index) => {
                   return (
