@@ -35,11 +35,6 @@ function App() {
     await store.save();
   }
 
-  async function saveToolbarShown() {
-    await store.set("toolbar_shown", { value: showToolbar });
-    await store.save();
-  }
-
   async function saveAll() {
     await saveTaskList();
   }
