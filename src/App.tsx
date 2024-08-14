@@ -43,8 +43,8 @@ function App() {
   const buttonActions = [
     demoAddTop,
     demoAddBottom,
-    () => {},
-    () => {},
+    timedTask,
+    scheduleTask,
     () => {},
     saveAll,
   ];
