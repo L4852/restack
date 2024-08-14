@@ -6,11 +6,11 @@ import { Store } from "tauri-plugin-store-api";
 
 import { ask, confirm, message } from "@tauri-apps/api/dialog";
 
-import {
-  isPermissionGranted,
-  requestPermission,
-  sendNotification,
-} from "@tauri-apps/api/notification";
+// import {
+//   isPermissionGranted,
+//   requestPermission,
+//   sendNotification,
+// } from "@tauri-apps/api/notification";
 
 import { AnimatePresence, motion } from "framer-motion";
 
@@ -43,8 +43,8 @@ function App() {
   const buttonActions = [
     demoAddTop,
     demoAddBottom,
-    timedTask,
-    scheduleTask,
+    () => {},
+    () => {},
     () => {},
     saveAll,
   ];
@@ -172,18 +172,18 @@ function App() {
     );
   }
 
-  function timedTask() {
-    showDialog(
-      "ask",
-      "info",
-      "Timed Task",
-      "Enter the duration for this task."
-    );
-  }
+  // function timedTask() {
+  //   showDialog(
+  //     "ask",
+  //     "info",
+  //     "Timed Task",
+  //     "Enter the duration for this task."
+  //   );
+  // }
 
-  function scheduleTask() {
-    showNotification("Scheduled Task", "This is a notification.");
-  }
+  // function scheduleTask() {
+  //   showNotification("Scheduled Task", "This is a notification.");
+  // }
 
   // ==============
 
@@ -229,29 +229,29 @@ function App() {
     }
   }
 
-  async function showNotification(message: string, title: string = "") {
-    let notifsPermsGranted = await isPermissionGranted();
+  // async function showNotification(message: string, title: string = "") {
+  //   let notifsPermsGranted = await isPermissionGranted();
 
-    if (!notifsPermsGranted) {
-      const permission = await requestPermission();
-      notifsPermsGranted = permission === "granted";
-    }
+  //   if (!notifsPermsGranted) {
+  //     const permission = await requestPermission();
+  //     notifsPermsGranted = permission === "granted";
+  //   }
 
-    if (notifsPermsGranted) {
-      if (title.length == 0) {
-        sendNotification(message);
-      } else {
-        sendNotification({ title: title, body: message });
-      }
-    } else {
-      showDialog(
-        "message",
-        "warning",
-        "Notification Permissions",
-        "A notification was unable to be sent due to insufficient permissions or internal errors."
-      );
-    }
-  }
+  //   if (notifsPermsGranted) {
+  //     if (title.length == 0) {
+  //       sendNotification(message);
+  //     } else {
+  //       sendNotification({ title: title, body: message });
+  //     }
+  //   } else {
+  //     showDialog(
+  //       "message",
+  //       "warning",
+  //       "Notification Permissions",
+  //       "A notification was unable to be sent due to insufficient permissions or internal errors."
+  //     );
+  //   }
+  // }
 
   function showWorkInProgress() {
     showDialog(
