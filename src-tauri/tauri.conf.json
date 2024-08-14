@@ -7,7 +7,7 @@
   },
   "package": {
     "productName": "restack",
-    "version": "1.0.2"
+    "version": "1.1.0-alpha"
   },
   "tauri": {
     "allowlist": {
@@ -15,6 +15,17 @@
       "shell": {
         "all": false,
         "open": true
+      },
+      "dialog": {
+        "all": false,
+        "ask": true,
+        "confirm": true,
+        "message": true,
+        "open": false,
+        "save": false
+      },
+      "notification": {
+        "all": true
       }
     },
     "windows": [

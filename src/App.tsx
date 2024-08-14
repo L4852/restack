@@ -1,6 +1,16 @@
+// IMPORTS
+
 import { FormEvent, useEffect, useRef, useState } from "react";
 import "./App.css";
 import { Store } from "tauri-plugin-store-api";
+
+import { ask, confirm, message } from "@tauri-apps/api/dialog";
+
+import {
+  isPermissionGranted,
+  requestPermission,
+  sendNotification,
+} from "@tauri-apps/api/notification";
 
 import { AnimatePresence, motion } from "framer-motion";
 
@@ -10,10 +20,34 @@ import {
   ListEndIcon,
   ListStartIcon,
   SaveIcon,
+  HourglassIcon,
+  CalendarClockIcon,
+  DownloadIcon,
 } from "lucide-react";
 
+// ===============================
+
 function App() {
-  const buttonLabels = [<ListStartIcon />, <ListEndIcon />];
+
+  // CONSTANTS
+
+  const buttonLabels = [
+    <ListStartIcon />,
+    <ListEndIcon />,
+    <HourglassIcon />,
+    <CalendarClockIcon />,
+    <DownloadIcon />,
+    <SaveIcon />,
+  ];
+
+  const buttonActions = [
+    demoAddTop,
+    demoAddBottom,
+    () => {},
+    () => {},
+    () => {},
+    saveAll,
+  ];
 
   const [taskArray, setTaskArray] = useState<Task[]>([]);
 
@@ -25,10 +59,19 @@ function App() {
 
   const taskEnterBar = useRef<HTMLInputElement>(null);
 
+  const draggedTask = useRef<number>(0);
+  const dragTarget = useRef<number>(0);
+
   const MAX_TASK_NAME_LENGTH = 140;
   const MAX_INPUT_BOX = 999;
 
   type Task = { name: string; createdAt: number };
+
+  const store = new Store(".tasks.dat");
+
+  // =========================
+
+  // CORE FUNCTIONS
 
   async function saveTaskList() {
     await store.set("task_list", { value: taskArray });
@@ -37,6 +80,7 @@ function App() {
 
   async function saveAll() {
     await saveTaskList();
+    showDialog("message", "info", "Your tasks have been successfully saved.");
   }
 
   async function getTaskList() {
@@ -54,8 +98,6 @@ function App() {
       setShowToolbar(data.value);
     }
   }
-
-  const store = new Store(".tasks.dat");
 
   function checkTaskRequirements() {
     let result = false;
@@ -77,6 +119,30 @@ function App() {
     }
     return result;
   }
+
+  async function toggleToolbarVisibility() {
+    if (showToolbar) {
+      setShowToolbar(false);
+    } else {
+      setShowToolbar(true);
+    }
+  }
+
+  function getInputBox(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+  }
+
+  function updateInputLength() {
+    setInputLength(taskEnterBar.current!.value.length);
+  }
+
+  function canGetInput() {
+    return taskEnterBar.current != null ? true : false;
+  }
+
+  // ====================================
+
+  // TOOLBAR FUNCTIONS
 
   function demoAddTop() {
     if (checkTaskRequirements()) {
@@ -106,24 +172,116 @@ function App() {
     );
   }
 
-  async function toggleToolbarVisibility() {
-    if (showToolbar) {
-      setShowToolbar(false);
+  function timedTask() {
+    showDialog(
+      "ask",
+      "info",
+      "Timed Task",
+      "Enter the duration for this task."
+    );
+  }
+
+  function scheduleTask() {
+    showNotification("Scheduled Task", "This is a notification.");
+  }
+
+  // ==============
+
+  // UTILITY FUNCTIONS
+
+  async function showDialog(
+    dialog_format: string,
+    dialog_type: any, // info, warning, error
+    message_string: string,
+    title: string = ""
+  ) {
+    if (title.length == 0) {
+      switch (dialog_format) {
+        case "confirm":
+          return await confirm(message_string);
+        case "ask":
+          return await ask(message_string);
+        case "message":
+          return await message(message_string);
+        default:
+          break;
+      }
     } else {
-      setShowToolbar(true);
+      switch (dialog_format) {
+        case "confirm":
+          return await confirm(message_string, {
+            title: title,
+            type: dialog_type,
+          });
+        case "ask":
+          return await ask(message_string, {
+            title: title,
+            type: dialog_type,
+          });
+        case "message":
+          return await message(message_string, {
+            title: title,
+            type: dialog_type,
+          });
+        default:
+          break;
+      }
     }
   }
 
-  function getInputBox(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
+  async function showNotification(message: string, title: string = "") {
+    let notifsPermsGranted = await isPermissionGranted();
+
+    if (!notifsPermsGranted) {
+      const permission = await requestPermission();
+      notifsPermsGranted = permission === "granted";
+    }
+
+    if (notifsPermsGranted) {
+      if (title.length == 0) {
+        sendNotification(message);
+      } else {
+        sendNotification({ title: title, body: message });
+      }
+    } else {
+      showDialog(
+        "message",
+        "warning",
+        "Notification Permissions",
+        "A notification was unable to be sent due to insufficient permissions or internal errors."
+      );
+    }
   }
 
-  function updateInputLength() {
-    setInputLength(taskEnterBar.current!.value.length);
+  function showWorkInProgress() {
+    showDialog(
+      "message",
+      "info",
+      "Feature in Progress",
+      "This feature has not been implemented yet."
+    );
   }
 
-  function canGetInput() {
-    return taskEnterBar.current != null ? true : false;
+  async function refreshTasklist() {
+    const copiedList = [...taskArray];
+    const selectedDrag = taskArray[draggedTask.current];
+    const targetDrag = taskArray[dragTarget.current];
+
+    const dialogResponse = await showDialog(
+      "confirm",
+      "warning",
+      "Modify List",
+      `Are you sure you want to move the item at position #${
+        draggedTask.current + 1
+      } to position #${dragTarget.current + 1}?`
+    );
+
+    if (dialogResponse) {
+      copiedList[draggedTask.current] = targetDrag;
+      copiedList[dragTarget.current] = selectedDrag;
+
+      setTaskArray(copiedList);
+    }
   }
 
   useEffect(() => {
@@ -132,11 +290,17 @@ function App() {
     console.log("Fetched user tasks.");
   }, []);
 
+  // =======================
+
+  // STYLE CONSTANTS
+
   const toolbarStyle =
     "bg-slate-500 p-2 text-white hover:bg-slate-700 transition ease-in-out duration-300";
 
   const taskStyle =
     "text-center text-white p-6 bg-slate-500 hover:bg-slate-700 hover:shadow-2xl transition duration-300 ease-in-out cursor-pointer mx-36 rounded-lg border-2 border-slate-300";
+
+  // =======================
 
   return (
     <div className="relative font-inter-tight">
@@ -161,15 +325,10 @@ function App() {
                   whileTap={{ scale: 1.2, fontWeight: 500 }}
                   className={toolbarStyle}
                   onClick={() => {
-                    switch (index) {
-                      case 0:
-                        demoAddTop();
-                        break;
-                      case 1:
-                        demoAddBottom();
-                        break;
-                      default:
-                        break;
+                    if (buttonActions[index].name.length != 0) {
+                      buttonActions[index]();
+                    } else {
+                      showWorkInProgress();
                     }
                   }}
                   key={index}
@@ -178,24 +337,11 @@ function App() {
                 </motion.button>
               );
             })}
-            <motion.button
-              whileHover={{
-                scale: 1.1,
-                fontWeight: 800,
-                backgroundColor: "rgb(51, 204, 204)",
-              }}
-              initial={{ y: 0 }}
-              whileTap={{ y: -5 }}
-              className={toolbarStyle}
-              onClick={() => saveAll()}
-            >
-              <SaveIcon />
-            </motion.button>
           </motion.div>
         </AnimatePresence>
         {/* Toggle Toolbar Button */}
         <motion.div
-          whileHover={{ backgroundColor: "rgb(41, 194, 245)" }}
+          whileHover={{ backgroundColor: "rgb(170, 180, 190)" }}
           className="flex flex-col justify-center bg-slate-300 p-2 mb-5 z-50 cursor-pointer"
           onClick={() => toggleToolbarVisibility()}
         >
@@ -265,18 +411,23 @@ function App() {
                 taskArray.map((task, index) => {
                   return (
                     <motion.li
+                      draggable
+                      onDragStart={() => (draggedTask.current = index)}
+                      onDragEnter={() => (dragTarget.current = index)}
+                      onDragEnd={refreshTasklist}
+                      onDragOver={(e) => e.preventDefault()}
                       whileHover={{
                         scale: index == 0 ? 1.035 : 1.025,
                         fontWeight: 800,
                         backgroundColor:
-                          index == 0 ? "rgb(0, 133, 0)" : "rgb(51, 65, 85)",
+                          index == 0 ? "rgb(0, 133, 0)" : "rgb(51, 65, 85)", // HOVER COLORS
                       }}
                       whileTap={{ scale: 1.03, fontWeight: 900 }}
                       initial={{
                         scale: index == 0 ? 1.025 : 1,
                         opacity: 1,
                         backgroundColor:
-                          index == 0 ? "rgb(0, 153, 0)" : "rgb(100, 116, 139)",
+                          index == 0 ? "rgb(205, 30, 0)" : "rgb(100, 116, 139)", // ENTRY COLORS (0, 153, 0) - green
                         y: -30,
                       }}
                       animate={{ y: 0 }}
