@@ -5,6 +5,9 @@ export default {
     fontFamily: {
       "inter-tight": ["Inter\\ Tight"],
     },
+    fontFamily: {
+      overpass: ["Overpass"],
+    },
   },
   plugins: [],
 };

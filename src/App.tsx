@@ -28,7 +28,6 @@ import {
 // ===============================
 
 function App() {
-
   // CONSTANTS
 
   const buttonLabels = [
@@ -62,7 +61,7 @@ function App() {
   const draggedTask = useRef<number>(0);
   const dragTarget = useRef<number>(0);
 
-  const MAX_TASK_NAME_LENGTH = 140;
+  const MAX_TASK_NAME_LENGTH = 60;
   const MAX_INPUT_BOX = 999;
 
   type Task = { name: string; createdAt: number };
@@ -73,17 +72,17 @@ function App() {
 
   // CORE FUNCTIONS
 
-  async function saveTaskList() {
+  async function saveTaskList(): Promise<void> {
     await store.set("task_list", { value: taskArray });
     await store.save();
   }
 
-  async function saveAll() {
+  async function saveAll(): Promise<void> {
     await saveTaskList();
     showDialog("message", "info", "Your tasks have been successfully saved.");
   }
 
-  async function getTaskList() {
+  async function getTaskList(): Promise<void> {
     const data = await store.get<{ value: Task[] }>("task_list");
 
     if (data != null) {
@@ -91,7 +90,7 @@ function App() {
     }
   }
 
-  async function getToolbarShown() {
+  async function getToolbarShown(): Promise<void> {
     const data = await store.get<{ value: boolean }>("toolbar_shown");
 
     if (data != null) {
@@ -120,7 +119,7 @@ function App() {
     return result;
   }
 
-  async function toggleToolbarVisibility() {
+  async function toggleToolbarVisibility(): Promise<void> {
     if (showToolbar) {
       setShowToolbar(false);
     } else {
@@ -132,7 +131,7 @@ function App() {
     event.preventDefault();
   }
 
-  function updateInputLength() {
+  function updateInputLength(): void {
     setInputLength(taskEnterBar.current!.value.length);
   }
 
@@ -144,7 +143,7 @@ function App() {
 
   // TOOLBAR FUNCTIONS
 
-  function demoAddTop() {
+  function demoAddTop(): void {
     if (checkTaskRequirements()) {
       setTaskArray((prev) => [
         { name: taskEnterBar.current!.value, createdAt: Date.now() },
@@ -155,7 +154,7 @@ function App() {
     }
   }
 
-  function demoAddBottom() {
+  function demoAddBottom(): void {
     if (checkTaskRequirements()) {
       setTaskArray((prev) => [
         ...prev,
@@ -166,7 +165,7 @@ function App() {
     }
   }
 
-  function removeTask(timeCreated: number) {
+  function removeTask(timeCreated: number): void {
     setTaskArray((prev) =>
       prev.filter((task, _) => task.createdAt != timeCreated)
     );
@@ -194,7 +193,7 @@ function App() {
     dialog_type: any, // info, warning, error
     message_string: string,
     title: string = ""
-  ) {
+  ): Promise<any> {
     if (title.length == 0) {
       switch (dialog_format) {
         case "confirm":
@@ -253,7 +252,7 @@ function App() {
   //   }
   // }
 
-  function showWorkInProgress() {
+  function showWorkInProgress(): void {
     showDialog(
       "message",
       "info",
@@ -262,7 +261,7 @@ function App() {
     );
   }
 
-  async function refreshTasklist() {
+  async function refreshTasklist(): Promise<void> {
     const copiedList = [...taskArray];
     const selectedDrag = taskArray[draggedTask.current];
     const targetDrag = taskArray[dragTarget.current];
@@ -292,18 +291,32 @@ function App() {
 
   // =======================
 
+  // COMPUTATION
+
+  // =======================
+
+  const DECAY_RATE: number = 0.2;
+  const DECAY_MIN = 0;
+
+  function gradientFunction(index: number): number {
+    if (index <= 0) {
+      return 1;
+    }
+    return 1 / (DECAY_RATE * (index - 1) + 1) + DECAY_MIN * (1 - 1 / index);
+  }
+
   // STYLE CONSTANTS
 
   const toolbarStyle =
     "bg-slate-500 p-2 text-white hover:bg-slate-700 transition ease-in-out duration-300";
 
   const taskStyle =
-    "text-center text-white p-6 bg-slate-500 hover:bg-slate-700 hover:shadow-2xl transition duration-300 ease-in-out cursor-pointer mx-36 rounded-lg border-2 border-slate-300";
+    "font-overpass text-xl text-center text-white p-6 bg-slate-500 hover:bg-slate-700 hover:shadow-2xl transition duration-300 ease-in-out cursor-pointer mx-36 rounded-lg border-2 border-slate-300";
 
   // =======================
 
   return (
-    <div className="relative font-inter-tight">
+    <div className="relative font-overpass">
       <div className="gap-4">
         {/* Toolbar */}
         <AnimatePresence>
@@ -364,7 +377,7 @@ function App() {
                   initial={{ x: -150 }}
                   animate={{ x: 0 }}
                   name="task-name-input"
-                  className="p-4 w-96 active border-solid border-b-2 border-black focus:outline-none"
+                  className="font-overpass text-lg p-4 w-96 active border-solid border-b-2 border-black focus:outline-none"
                   type="text"
                   placeholder="Enter a task name..."
                   onInput={updateInputLength}
@@ -372,13 +385,13 @@ function App() {
                 />
               </form>
             </div>
-            <h2 className="font-inter-tight font-light text-md text-center p-2">
+            <h2 className="font-overpass font-light text-lg text-center p-2">
               {showToolbar ? infoDialog : undefined}
             </h2>
             {canGetInput() && taskEnterBar.current!.value.length > 0 ? (
               <h3
                 className={
-                  "font-inter-tight font-bold text-sm text-center " +
+                  "font-overpass font-bold text-md text-center " +
                   (showToolbar &&
                   canGetInput() &&
                   taskEnterBar.current!.value.length > MAX_TASK_NAME_LENGTH
@@ -398,7 +411,7 @@ function App() {
               {/* Pending Task Count Display */}
               {taskArray.length > 0 ? (
                 <div className="flex flex-col justify-center">
-                  <h2 className="font-inter-tight font-semibold text-2xl text-red-900 text-center p-4">
+                  <h2 className="font-overpass font-semibold text-3xl text-red-900 text-center p-4">
                     You have {taskArray.length} pending task
                     {taskArray.length > 1 ? "s" : ""}.
                   </h2>
@@ -427,7 +440,11 @@ function App() {
                         scale: index == 0 ? 1.025 : 1,
                         opacity: 1,
                         backgroundColor:
-                          index == 0 ? "rgb(205, 30, 0)" : "rgb(100, 116, 139)", // ENTRY COLORS (0, 153, 0) - green
+                          index == 0
+                            ? "rgb(205, 30, 0)"
+                            : `rgb(${gradientFunction(index) * 100}, ${
+                                gradientFunction(index) * 116
+                              }, ${gradientFunction(index) * 139})`, // ENTRY COLORS (0, 153, 0) - green
                         y: -30,
                       }}
                       animate={{ y: 0 }}
@@ -444,7 +461,7 @@ function App() {
                 })
               ) : (
                 <div className="flex flex-col justify-center">
-                  <h2 className="font-inter-tight font-semibold text-green-900 text-2xl text-center p-4">
+                  <h2 className="font-overpass font-semibold text-green-900 text-2xl text-center p-4">
                     You have no pending tasks.
                   </h2>
                   <img
