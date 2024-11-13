@@ -71,7 +71,7 @@ function App() {
 
   // =========================
 
-  // CORE FUNCTIONS
+  // CORE APP FUNCTIONS
 
   async function saveTaskList() {
     await store.set("task_list", { value: taskArray });
