@@ -23,6 +23,9 @@ import {
   HourglassIcon,
   CalendarClockIcon,
   DownloadIcon,
+  EditIcon,
+  TrashIcon,
+  CopyIcon,
 } from "lucide-react";
 
 // ===============================
@@ -171,6 +174,100 @@ function App() {
     );
   }
 
+  // ====================================
+
+  // HOVER OPTION HANDLERS
+
+  function showTaskActions(createdAt: string) {
+    let taskActionElement = document.getElementById(createdAt);
+
+    if (!taskActionElement) {
+      return;
+    }
+
+    taskActionElement.className = "mt-4";
+  }
+  function hideTaskActions(createdAt: string) {
+    let taskActionElement = document.getElementById(createdAt);
+
+    if (!taskActionElement) {
+      return;
+    }
+
+    taskActionElement.className = "hidden";
+  }
+
+  function showClearButton(): void {
+    let clearButtonElement = document.getElementById(
+      "clear-button-hover-element"
+    );
+
+    if (!clearButtonElement) {
+      return;
+    }
+
+    clearButtonElement.className = "my-auto";
+  }
+
+  function hideClearButton(): void {
+    let clearButtonElement = document.getElementById(
+      "clear-button-hover-element"
+    );
+
+    if (!clearButtonElement) {
+      return;
+    }
+
+    clearButtonElement.className = "hidden";
+  }
+
+  // ====================================
+
+  // TASK FUNCTIONS
+
+  async function editEntry(timeCreated: number): Promise<void> {
+    let newName = taskEnterBar.current!.value;
+
+    if (newName.length == 0) {
+      setInfoDialog(
+        "To edit a task name, type the new name in the input box and press the edit button for the corresponding task."
+      );
+      return;
+    }
+    let confirm = await showDialog(
+      "confirm",
+      "info",
+      "Are you sure you want to edit this task name?",
+      "Edit Task"
+    );
+
+    if (!confirm) {
+      return;
+    }
+
+    let reformedArray: Task[] = [];
+    taskArray.forEach((element) => {
+      if (element.createdAt == timeCreated) {
+        element.name = newName;
+      }
+      reformedArray.push(element);
+    });
+    setInfoDialog("");
+    setTaskArray(reformedArray);
+  }
+
+  function copyEntryName(timeCreated: number): void {
+    taskArray.forEach((element) => {
+      if (element.createdAt == timeCreated) {
+        taskEnterBar.current!.value = element.name;
+      }
+    });
+  }
+
+  function clearInputBar(): void {
+    taskEnterBar.current!.value = "";
+  }
+
   // function timedTask() {
   //   showDialog(
   //     "ask",
@@ -256,15 +353,20 @@ function App() {
     showDialog(
       "message",
       "info",
-      "Feature in Progress",
-      "This feature has not been implemented yet."
+      "This feature has not been implemented yet.",
+      "Feature in Development"
     );
   }
 
-  async function refreshTasklist(): Promise<void> {
+  async function swapListItems(): Promise<void> {
     const copiedList = [...taskArray];
     const selectedDrag = taskArray[draggedTask.current];
     const targetDrag = taskArray[dragTarget.current];
+
+    // Prevent dialog for move to same position.
+    if (draggedTask.current == dragTarget.current) {
+      return;
+    }
 
     const dialogResponse = await showDialog(
       "confirm",
@@ -308,11 +410,12 @@ function App() {
   // STYLE CONSTANTS
 
   const toolbarStyle =
-    "bg-slate-500 p-2 text-white hover:bg-slate-700 transition ease-in-out duration-300";
+    "p-2 text-white hover:bg-slate-700 transition ease-in-out duration-300";
 
   const taskStyle =
-    "font-overpass text-xl text-center text-white p-6 bg-slate-500 hover:bg-slate-700 hover:shadow-2xl transition duration-300 ease-in-out cursor-pointer mx-36 rounded-lg border-2 border-slate-300";
+    "ml-0 mr-4 font-overpass text-xl text-center text-white p-6 bg-slate-500 hover:bg-slate-700 hover:shadow-2xl transition duration-300 ease-in-out cursor-pointer mx-36 rounded-lg border-2 border-slate-300";
 
+  const taskActionStyle = "mx-4 justify-center";
   // =======================
 
   return (
@@ -370,7 +473,11 @@ function App() {
         {/* Task Entry Bar and Character Limit Dialog */}
         {showToolbar ? (
           <div>
-            <div className="flex justify-center">
+            <motion.div
+              className="flex justify-center"
+              onHoverStart={showClearButton}
+              onHoverEnd={hideClearButton}
+            >
               <form id="task-input-form" onSubmit={(e) => getInputBox(e)}>
                 <motion.input
                   ref={taskEnterBar}
@@ -384,7 +491,15 @@ function App() {
                   maxLength={MAX_INPUT_BOX}
                 />
               </form>
-            </div>
+              <span id={"clear-button-hover-element"} className={"hidden"}>
+                <button
+                  onClick={() => clearInputBar()}
+                  title="Press to clear the input bar."
+                >
+                  <TrashIcon />
+                </button>
+              </span>
+            </motion.div>
             <h2 className="font-overpass font-light text-lg text-center p-2">
               {showToolbar ? infoDialog : undefined}
             </h2>
@@ -423,40 +538,69 @@ function App() {
               {taskArray.length > 0 ? (
                 taskArray.map((task, index) => {
                   return (
-                    <motion.li
-                      draggable
-                      onDragStart={() => (draggedTask.current = index)}
-                      onDragEnter={() => (dragTarget.current = index)}
-                      onDragEnd={refreshTasklist}
-                      onDragOver={(e) => e.preventDefault()}
-                      whileHover={{
-                        scale: index == 0 ? 1.035 : 1.025,
-                        fontWeight: 800,
-                        backgroundColor:
-                          index == 0 ? "rgb(0, 133, 0)" : "rgb(51, 65, 85)", // HOVER COLORS
-                      }}
-                      whileTap={{ scale: 1.03, fontWeight: 900 }}
-                      initial={{
-                        scale: index == 0 ? 1.025 : 1,
-                        opacity: 1,
-                        backgroundColor:
-                          index == 0
-                            ? "rgb(205, 30, 0)"
-                            : `rgb(${gradientFunction(index) * 100}, ${
-                                gradientFunction(index) * 116
-                              }, ${gradientFunction(index) * 139})`, // ENTRY COLORS (0, 153, 0) - green
-                        y: -30,
-                      }}
-                      animate={{ y: 0 }}
-                      exit={{
-                        opacity: 0,
-                      }}
-                      key={index}
-                      className={taskStyle}
-                      onClick={() => removeTask(task.createdAt)}
-                    >
-                      {task.name}
-                    </motion.li>
+                    <div className="flex flex-row justify-center">
+                      <motion.li
+                        draggable
+                        title={`Task Name: ${task.name} | Task Index: ${index} | Task Created At: ${task.createdAt}\nClick on the task name to remove this task.`}
+                        onDragStart={() => (draggedTask.current = index)}
+                        onDragEnter={() => (dragTarget.current = index)}
+                        onHoverStart={() =>
+                          showTaskActions(task.createdAt.toString())
+                        }
+                        onHoverEnd={() =>
+                          hideTaskActions(task.createdAt.toString())
+                        }
+                        onDragEnd={swapListItems}
+                        onDragOver={(e) => e.preventDefault()}
+                        whileHover={{
+                          scale: index == 0 ? 1.035 : 1.025,
+                          fontWeight: 800,
+                          backgroundColor:
+                            index == 0 ? "rgb(0, 133, 0)" : "rgb(51, 65, 85)", // HOVER COLORS
+                        }}
+                        whileTap={{ scale: 1.03, fontWeight: 900 }}
+                        initial={{
+                          scale: index == 0 ? 1.025 : 1,
+                          opacity: 1,
+                          backgroundColor:
+                            index == 0
+                              ? "rgb(205, 30, 0)"
+                              : `rgb(${gradientFunction(index) * 100}, ${
+                                  gradientFunction(index) * 116
+                                }, ${gradientFunction(index) * 139})`, // ENTRY COLORS (0, 153, 0) - green
+                          y: -30,
+                        }}
+                        animate={{ y: 0 }}
+                        exit={{
+                          opacity: 0,
+                        }}
+                        key={index}
+                        className={taskStyle}
+                      >
+                        <p onClick={() => removeTask(task.createdAt)}>
+                          {task.name}
+                        </p>
+                        <div
+                          id={task.createdAt.toString()}
+                          className={"hidden"}
+                        >
+                          <button
+                            className={taskActionStyle}
+                            onClick={() => copyEntryName(task.createdAt)}
+                            title="Press this button to automatically copy this task's name to the input bar for quick editing."
+                          >
+                            <CopyIcon />
+                          </button>
+                          <button
+                            className={taskActionStyle}
+                            onClick={() => editEntry(task.createdAt)}
+                            title="Enter a new name in the input box and press this edit button to apply changes."
+                          >
+                            <EditIcon />
+                          </button>
+                        </div>
+                      </motion.li>
+                    </div>
                   );
                 })
               ) : (
